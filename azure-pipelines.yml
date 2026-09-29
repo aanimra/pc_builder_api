@@ -8,7 +8,7 @@ pool:
 
 variables:
   dockerRegistryConnection: 'dockerhub-conn'
-  imageRepository: 'aanimra/pc_builder_api'
+  imageRepository: 'mintyyyn/pc_builder_api'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
 
 stages:
