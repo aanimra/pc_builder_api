@@ -17,3 +17,5 @@ REST API сервіс для управління каталогом компл�
 pip install -r requirements.txt
 pytest -v
 ```
+
+<!-- comment to check if the pipeline runs automatically  -->
