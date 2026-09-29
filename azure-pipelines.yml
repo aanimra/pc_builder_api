@@ -1,0 +1,61 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  dockerRegistryConnection: 'dockerhub-conn'
+  imageRepository: 'aanimra/pc_builder_api'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+
+stages:
+  # Етап a & b: Збирання проєкту та запуск unit-тестів
+  - stage: BuildAndTest
+    displayName: 'Build and Unit Tests'
+    jobs:
+      - job: TestJob
+        displayName: 'Install Dependencies & Run Pytest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.11'
+            displayName: 'Set Python 3.11'
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install Dependencies'
+
+          - script: |
+              pytest --junitxml=junit/test-results.xml
+            displayName: 'Run Unit Tests'
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFiles: '**/test-results.xml'
+              testRunTitle: 'Python Unit Test Results'
+            displayName: 'Publish Unit Test Results'
+
+  # Етап c, d & e: Збирання образу, тегування (latest + BuildId) та публікація
+  - stage: DockerBuildAndPush
+    displayName: 'Docker Build, Tag and Push'
+    dependsOn: BuildAndTest
+    condition: succeeded()
+    jobs:
+      - job: PushImage
+        displayName: 'Push Image to Docker Hub'
+        steps:
+          - task: Docker@2
+            displayName: 'Build and Push Docker Image'
+            inputs:
+              command: buildAndPush
+              containerRegistry: $(dockerRegistryConnection)
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              tags: |
+                latest
+                $(Build.BuildId)
