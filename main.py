@@ -60,3 +60,5 @@ def delete_item(id: int):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Товар не знайдено")
     del items_db[id]
     return None
+
+# check artifact upload
